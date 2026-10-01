@@ -25,9 +25,8 @@ jobs:
   update:
     runs-on: ubuntu-latest
     env:
+      # Paid AI credentials are intentionally not exposed to this job.
       TZ: Asia/Seoul
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-5.5-pro' }}
       ARTICLE_LIMIT: ${{ vars.ARTICLE_LIMIT || '12' }}
 
     steps:

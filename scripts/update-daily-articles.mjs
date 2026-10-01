@@ -7,8 +7,8 @@ const indexPath = join(root, "index.html");
 const dataPath = join(root, "data", "daily-articles.json");
 const urlListPaths = [join(root, "data", "article-urls.md"), join(root, "data", "article-urls.txt")];
 const articleLimit = positiveInteger(process.env.ARTICLE_LIMIT, 12);
-const model = process.env.OPENAI_MODEL || "gpt-5.5-pro";
-const apiKey = process.env.OPENAI_API_KEY;
+// Paid model APIs are disabled by the account owner (2026-10-01).
+// Article cards use public page metadata only; API keys are never read.
 
 const START = "<!-- daily-articles:start -->";
 const END = "<!-- daily-articles:end -->";
@@ -25,7 +25,7 @@ const urls = await readArticleUrls();
 const articleSources = await fetchArticleSources(urls.slice(0, articleLimit));
 const daily = {
   editionDate: today,
-  articles: apiKey ? await summarizeWithOpenAI(articleSources) : summarizeFromMetadata(articleSources),
+  articles: summarizeFromMetadata(articleSources),
 };
 
 if (!daily.articles.length) {
@@ -139,92 +139,8 @@ async function fetchArticleSource(url) {
   };
 }
 
-async function summarizeWithOpenAI(sources) {
-  const schema = {
-    type: "object",
-    additionalProperties: false,
-    required: ["editionDate", "articles"],
-    properties: {
-      editionDate: { type: "string" },
-      articles: {
-        type: "array",
-        minItems: sources.length,
-        maxItems: sources.length,
-        items: {
-          type: "object",
-          additionalProperties: false,
-          required: ["category", "title", "summary", "sourceName", "sourceUrl"],
-          properties: {
-            category: {
-              type: "string",
-              enum: ["AI", "교육", "사이버안전", "디지털 시민성", "정책", "연구동향"],
-            },
-            title: { type: "string" },
-            summary: { type: "string" },
-            sourceName: { type: "string" },
-            sourceUrl: { type: "string" },
-          },
-        },
-      },
-    },
-  };
-
-  const response = await fetch("https://api.openai.com/v1/responses", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      instructions:
-        "You are the Korean editor of 한국사이버리터러시저널. Write concise Korean article cards using only the URL, metadata, and extracted article text supplied by the user. Do not invent facts or add unprovided sources.",
-      input: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "input_text",
-              text:
-                `오늘 날짜는 ${today}이고 시간대는 Asia/Seoul입니다. ` +
-                "아래 URL 목록 순서를 유지해 각 URL당 기사 카드 1개를 만드세요. " +
-                "제목은 45자 이내, 요약은 110자 이내의 한국어 문장으로 작성하고, sourceUrl은 입력 URL을 그대로 사용하세요.\n\n" +
-                JSON.stringify(sources, null, 2),
-            },
-          ],
-        },
-      ],
-      text: {
-        format: {
-          type: "json_schema",
-          name: "kcli_articles_from_urls",
-          strict: true,
-          schema,
-        },
-        verbosity: "low",
-      },
-      reasoning: { effort: "low" },
-      store: false,
-    }),
-  });
-
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`OpenAI request failed: ${response.status} ${body}`);
-  }
-
-  const payload = await response.json();
-  const outputText = payload.output_text || extractOutputText(payload);
-  if (!outputText) {
-    throw new Error("OpenAI response did not include output text.");
-  }
-
-  const result = JSON.parse(outputText);
-  return normalizeArticles(result.articles, sources);
-}
-
 function summarizeFromMetadata(sources) {
-  console.warn("OPENAI_API_KEY is not set. Using article metadata instead of AI summaries.");
+  console.log("Paid AI APIs are disabled. Using article metadata only.");
   return sources.map((source, index) => ({
     category: inferCategory(`${source.title} ${source.description} ${source.text}`),
     title: clip(source.title || hostname(source.url), 45),
@@ -233,20 +149,6 @@ function summarizeFromMetadata(sources) {
     sourceUrl: source.url,
     order: index,
   }));
-}
-
-function normalizeArticles(articles, sources) {
-  return sources.map((source, index) => {
-    const article = articles[index] || {};
-    return {
-      category: validCategory(article.category) ? article.category : inferCategory(`${source.title} ${source.text}`),
-      title: clip(article.title || source.title || hostname(source.url), 45),
-      summary: clip(article.summary || source.description || firstSentence(source.text), 110),
-      sourceName: clip(article.sourceName || source.sourceName || hostname(source.url), 40),
-      sourceUrl: source.url,
-      order: index,
-    };
-  });
 }
 
 function renderArticles(articles) {
@@ -313,10 +215,6 @@ function inferCategory(text) {
   return "연구동향";
 }
 
-function validCategory(category) {
-  return ["AI", "교육", "사이버안전", "디지털 시민성", "정책", "연구동향"].includes(category);
-}
-
 function normalizeUrl(value) {
   return value.replace(/[.,;:!?"']+$/g, "");
 }
@@ -350,14 +248,6 @@ async function exists(filePath) {
   } catch {
     return false;
   }
-}
-
-function extractOutputText(payload) {
-  return payload.output
-    ?.flatMap((item) => item.content || [])
-    .filter((content) => content.type === "output_text" && content.text)
-    .map((content) => content.text)
-    .join("");
 }
 
 function escapeHtml(value) {
