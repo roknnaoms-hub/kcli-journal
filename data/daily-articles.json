@@ -1,5 +1,5 @@
 {
-  "editionDate": "2026-10-15",
+  "editionDate": "2026-10-16",
   "articles": [
     {
       "category": "AI",
@@ -59,19 +59,11 @@
     },
     {
       "category": "AI",
-      "title": "배경훈 부총리 \"국방·안보엔 외산 AI 어렵다…통제 가능한 자체 모델 필요\"",
-      "summary": "정부가 글로벌 빅테크 중심의 인공지능(AI) 경쟁 속에서 국가 안보와 산업 경쟁력을 지키기 위해",
-      "sourceName": "n.news.naver.com",
-      "sourceUrl": "https://n.news.naver.com/article/092/0002424217?sid=105",
-      "order": 7
-    },
-    {
-      "category": "AI",
       "title": "[GIB Article] 국방 AI 활용 및 시장 동향: 글로벌 경쟁 속 한국의...",
       "summary": "NRC, 경제인문사회연구회(NRC)는 경제·인문사회 연구를 지원하는 기관입니다. 최신 연구성과를 확인하세요.",
       "sourceName": " NRC 경제인문사회연구회 - NRC 공식 홈페이지, NRC",
       "sourceUrl": "https://www.nrc.re.kr/board.es?mid=a12201000000&bid=0008&list_no=179783&otp_id=&act=view",
-      "order": 8
+      "order": 7
     },
     {
       "category": "AI",
@@ -79,7 +71,7 @@
       "summary": "오픈AI가 국내 사이버 안보 역량 강화를 위한 ‘한국 사이버 액션 플랜’을 발표했다.제이슨 권 오픈AI 최고 전략책임자( CSO)는 27일 서울 서초구 JW 메리",
       "sourceName": "AI타임스",
       "sourceUrl": "https://share.google/OesnqpU5RliehtN1y",
-      "order": 9
+      "order": 8
     }
   ]
 }
